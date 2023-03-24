@@ -1,0 +1,36 @@
+server:
+  port: 8091
+  forward-headers-strategy: framework
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    urls:
+      - name: product
+        url: /product-api
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  cloud:
+    gateway:
+      routes:
+        - id: product
+          uri: http://${PRODUCT_HOST:localhost}:8087
+          predicates:
+            - Path=/products/**
+        - id: basket
+          uri: http://${BASKET_HOST:localhost}:8090
+          predicates:
+            - Path=/baskets/**
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedHeaders: "*"
+            allowedMethods: "*"
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - name: Retry
+          args:
+            retries: 3
+            methods: GET,POST,PUT,DELETE
